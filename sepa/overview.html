@@ -1,0 +1,93 @@
+<html>
+<body>
+Standards (XML Schema) Compliant Java Framework designed for developing high performance, high volume Parsers.
+<p>
+Developing SEPA ISO20022 compliant parsers involves a great deal of preparation, development and testing. The LDX Framework helps you to be productive within a couple of minutes. It consists of the LDX Toolkit and Framework complete with a couple of prepared sample projects for SEPA. Its design enables you to fully concentrate on the processing of the data in a way that suits your needs, without having to deal with the intricacies of the standard. Its very important to understand that the generatede code follows the standard to the letter; if an XML element is part of the standard, you will find the Java equivalent in the generated code (all complex elements have their Java equivalent). This design choice has the following important implications:
+</p>
+<ul><li>Elements defined in the standard are reused
+</li><li>When new elements are introduced in the standard an equivalent can (and will) be created in the framework, without disturbing existing classes</li></ul>
+
+<h1>Prerequisites</h1>
+<p>
+If you're using Java (1.5 or higher) as a base for your SEPA Parser development, you can use the LDX SEPA Framework. Since the LDX SEPA Framework is designed based on the SAX 2.0 specification, it is extremely efficient and has low footprint, making it ideal for processing (very) large XML documents.
+</p>
+
+<h1>Design</h1>
+<p>
+
+It's an important design decision to decouple processing from reading. Note that the reader (Reader Component) does not understand what needs to be done with the data. That knowledge is the domain of the processor (Process Component). The Reader just provides information about the nature of the event (START | END) and the data. The Reader Component is provided by the framework, the Processor is provided by the application programmer by implementing an interface specified by the framework (Required Interface).
+Typically XML data arrives according to the following scheme:
+<pre>
+        [------------[[- tx1 -][- tx2 -][- tx3 -]]-----]
+        [[- header -][-----------batch1----------]...  ] 
+        [------------------- message ------------------]
+ 
+        -----------------------------------------------> 
+                                               time     
+</pre>        
+Since the <code>&lt;header&gt;</code> arrives before any other element, the application programmer may decide to process the header as soon as it becomes available. In case the <header> is stored in the database, its primary key can be made available to the Processor component (see: Processing your data) and be set as a FK for the <code>&lt;batch[1..n]&gt;</code> level data.
+</p><p>
+
+The LDX Framework provides two events to the processor for each item that the programmer chooses to process: the first on START of the encountered element, the second on END of the element. This gives full flexibility to implement custom processing.
+</p><p>
+
+Note: The LDX comes with a complete example of a processor implementation for PAIN.001.001.03. It clearly illustrates how the header, batch level and transaction level can be processed, without the need to store all of the objects in memory.
+
+</p><p>
+<h1>Validation</h1>
+
+Validation of messages is important, and the LDX Framework provides you with the required flexibility. The LDX Framework allows (optional) prevalidation and then processes the data. Because this approach cleanly separates the XML validation from the parsing/processing phase, exception handling can be much simpler. You can use a different schema if you require (more or less restrictive). The second phase of validation is done programmatically in the Processor component. Here you can use any validation you require. Note that pre-validation is not required: If you know correct input is guaranteed (because the was already validated), you may skip validation and process right away. However, generally we recommend you to validate the XML document. Typically you would use a more restrictive pre-validation if your model is more restrictive than the original ISO 20022 standard model. However, you may want to use less restrictive pre-validation if for instance you need the flexibility of rejecting an individual transaction if mandatory information is missing, instead of rejecting the whole set.
+</p><p>
+<h1>Processing large files</h1>
+
+All XML elements are represented as Java Beans (POJOs), which by default are connected similarly to their XML equivalents. All XML elements are translated to equivalent getters (and setter) so the data can be accessed in a straight forward manner. If an XML element has children, the equivalent Java object (by default) has children too. However, for some objects the programmer does not wish to attach the children to the parent objects, because there may be too many.
+For example in PAIN.008: represents the batch level and the transaction level. Obviously, because there may be a great many transactions, it would be too memory consuming to attach all the transactions to the batch level. Instead the programmer can simply specify at runtime (using a configuration file) to not link (detach) the transaction but process it directly instead (actually this is the default for transactions).
+
+</p><p>
+The application programmer has full control over the processing model of the XML data. The programmer can:
+</p><p>
+
+Specify which XML elements should be processed directly (instead of processed as part of their parent)
+Specify which XML elements should be detached from their parent (default for most objects is attached)
+Implement an application specific DataProcessor, which can be developed fully according to the application needs.
+Processing your data
+</p><p>
+
+Each interface (e.g. PAIN.001.001.03) has its own MessageHandler class provided by the framework. To process your data, all you have to do is implement the DataProcessor interface and connect it to the framework Reader component. The framework that is the foundation for the LDX Framework takes care of the proper invocation in accordance to the registration of the handlers (see: registerHandler fragment).
+</p>
+The next thing to do is register the processor with the LDX Framework (the example shows the PAIN001 case):
+
+ <pre>   
+	// initialize configuration; this will load the runtime configuration for your application
+	// see documentation under downloads section
+	ParserConfiguration.instance().load(new FileInputStream(config));
+
+	// create an XMLReader and optionally set a custom ErrorHandler..
+	// the ErrorHandler is a nice place for hooking up your Logging component..
+	XMLReader reader = XMLReaderFactory.createXMLReader();
+	reader.setErrorHandler(new MyErrorHandler());
+
+	// optional validation..	
+	if (schema != null) {
+		// connect schema file..
+		handler.setSchema(new StreamSource(new FileInputStream(schema)));
+		// validate XML prior to processing..
+		System.out.println("Validating..");
+		handler.validate(new StreamSource(new FileInputStream(xml)));
+	}
+
+	// initialize Pain001V03 message handler..
+	Pain001V03MessageHandler handler = new Pain001V03MessageHandler(reader);
+
+	// connect your processor to reader component..
+	handler.connectProcessor(new Pain001V03DataProcessor());
+
+	// connect input source..
+	handler.setInputSource(new InputSource(new FileInputStream(args[0])));
+
+	// start processing..
+	System.out.println("Processing..");
+	handler.process();
+</pre>						
+</body>
+</html>    
