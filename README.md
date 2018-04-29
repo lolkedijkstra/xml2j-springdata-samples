@@ -3,10 +3,10 @@ This repository contains some sample applications. The code was generated with t
 Generated code relies on the core library (xml2j-springdata-core).
 
 Run the releases:
-$ java -jar release.jar ../input/release.gz ../prop/release.prop
+`$ java -jar release.jar ../input/release.gz ../prop/release.prop`
 
 After running with the provided input the first release in MongoDB looks like this:
-
+```javascript
 {
     "_id" : NumberLong(6),
     "m_images" : {
@@ -236,6 +236,6 @@ After running with the provided input the first release in MongoDB looks like th
     "content" : "",
     "_class" : "com.xml2j.discogs.releases.ReleaseType"
 }
-
+```
 
 
