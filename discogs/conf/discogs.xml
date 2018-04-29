@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Example 
+	
+source: discogs
+
+========================
+Message Type : 	releases	
+========================
+
+-->
+<xml2j-generator 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns="urn:xml2j.sourceforge.io">
+ 	<domain 
+		base="com.xml2j"		
+		name="discogs"
+		input-path="schema">
+ 		<!-- all XSDs of one module are supposed to be placed in the same folder --> 
+ 		<!-- the module name is used as an extension for generation of the package-name -->
+<!--		
+		<module name="releases"
+				output-path="src/main/java"> 
+ 			<interface 
+ 				name="releases.xsd" 
+ 				message-handler-root="releases" 	
+ 				root-type-rename="Releases"
+ 				message-handler-name="ReleasesMessageHandler"
+				message-handler-processor="ReleasesProcessor"
+				message-handler-application-task="ReleasesApplicationTask"
+				message-handler-application="ReleasesApplication"/>
+ 		</module>
+-->		
+		<module name="artists"
+				output-path="src/main/java"> 
+ 			<interface 
+ 				name="artists.xsd" 
+ 				message-handler-root="artists" 	
+ 				root-type-rename="Artists"
+ 				message-handler-name="ArtistsMessageHandler"
+				message-handler-processor="ArtistsProcessor"
+				message-handler-application-task="ArtistsApplicationTask"
+				message-handler-application="ArtistsApplication"/>
+ 		</module>
+	</domain>
+</xml2j-generator>
